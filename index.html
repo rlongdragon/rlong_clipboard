@@ -1,0 +1,368 @@
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+  <script src="https://unpkg.com/unlazy@0.11.3/dist/unlazy.with-hashing.iife.js" defer init></script>
+  <script type="text/javascript">
+    window.tailwind.config = {
+      darkMode: ['class'],
+      theme: {
+        extend: {
+          colors: {
+            border: 'hsl(var(--border))',
+            input: 'hsl(var(--input))',
+            ring: 'hsl(var(--ring))',
+            background: 'hsl(var(--background))',
+            foreground: 'hsl(var(--foreground))',
+            primary: {
+              DEFAULT: 'hsl(var(--primary))',
+              foreground: 'hsl(var(--primary-foreground))'
+            },
+            secondary: {
+              DEFAULT: 'hsl(var(--secondary))',
+              foreground: 'hsl(var(--secondary-foreground))'
+            },
+            destructive: {
+              DEFAULT: 'hsl(var(--destructive))',
+              foreground: 'hsl(var(--destructive-foreground))'
+            },
+            muted: {
+              DEFAULT: 'hsl(var(--muted))',
+              foreground: 'hsl(var(--muted-foreground))'
+            },
+            accent: {
+              DEFAULT: 'hsl(var(--accent-foreground))'
+            },
+            popover: {
+              DEFAULT: 'hsl(var(--popover))',
+              foreground: 'hsl(var(--popover-foreground))'
+            },
+            card: {
+              DEFAULT: 'hsl(var(--card))',
+              foreground: 'hsl(var(--card-foreground))'
+            },
+          },
+        }
+      }
+    }
+  </script>
+  <style type="text/tailwindcss">
+    @layer base {
+				:root {
+					--background: 0 0% 100%;
+--foreground: 240 10% 3.9%;
+--card: 0 0% 100%;
+--card-foreground: 240 10% 3.9%;
+--popover: 0 0% 100%;
+--popover-foreground: 240 10% 3.9%;
+--primary: 240 5.9% 10%;
+--primary-foreground: 0 0% 98%;
+--secondary: 240 4.8% 95.9%;
+--secondary-foreground: 240 5.9% 10%;
+--muted: 240 4.8% 95.9%;
+--muted-foreground: 240 3.8% 46.1%;
+--accent: 240 4.8% 95.9%;
+--accent-foreground: 240 5.9% 10%;
+--destructive: 0 84.2% 60.2%;
+--destructive-foreground: 0 0% 98%;
+--border: 240 5.9% 90%;
+--input: 240 5.9% 90%;
+--ring: 240 5.9% 10%;
+--radius: 0.5rem;
+				}
+				.dark {
+					--background: 240 10% 3.9%;
+--foreground: 0 0% 98%;
+--card: 240 10% 3.9%;
+--card-foreground: 0 0% 98%;
+--popover: 240 10% 3.9%;
+--popover-foreground: 0 0% 98%;
+--primary: 0 0% 98%;
+--primary-foreground: 240 5.9% 10%;
+--secondary: 240 3.7% 15.9%;
+--secondary-foreground: 0 0% 98%;
+--muted: 240 3.7% 15.9%;
+--muted-foreground: 240 5% 64.9%;
+--accent: 240 3.7% 15.9%;
+--accent-foreground: 0 0% 98%;
+--destructive: 0 62.8% 30.6%;
+--destructive-foreground: 0 0% 98%;
+--border: 240 3.7% 15.9%;
+--input: 240 3.7% 15.9%;
+--ring: 240 4.9% 83.9%;
+				}
+			}
+		</style>
+  <style>
+    #load_process {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      opacity: 1;
+
+      transition: opacity 1s cubic-bezier(0.25, 1, 0.5, 1);
+
+      >#load_process_bar {
+        transition: width 0.1s cubic-bezier(0.25, 1, 0.5, 1);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="min-h-screen flex flex-col">
+    <div class="flex justify-start mb-4 p-4 bg-card dark:bg-card-foreground shadow-lg">
+      <h1 class="text-2xl font-bold mr-3 md:block hidden">Online Clipboard</h1>
+      <button id="create-button"
+        class="bg-primary text-primary-foreground hover:bg-primary/80 py-2 px-4 rounded-md mr-2">Create</button>
+      <button id="read-button"
+        class="bg-secondary text-secondary-foreground hover:bg-secondary/80 py-2 px-4 rounded-md">Read</button>
+    </div>
+    <div class="flex flex-col flex-grow items-center justify-center bg-background dark:bg-black px-6 font-mono">
+      <form class="w-full bg-card dark:bg-card-foreground shadow-lg rounded-lg p-6 mb-4">
+        <textarea
+          class="w-full bg-input dark:bg-input text-primary dark:text-primary-foreground border border-border rounded-md p-2 mb-4"
+          rows="15" placeholder="Enter your message here..." wrap="off"></textarea>
+        <button class="w-full bg-primary text-primary-foreground hover:bg-primary/80 py-2 rounded-md"
+          type="submit">Submit</button>
+      </form>
+    </div>
+    <div class="flex flex-col flex-grow items-center justify-center bg-background dark:bg-black px-6 font-mono">
+      <div class="w-full bg-card dark:bg-card-foreground shadow-lg rounded-lg p-6">
+        <h2 class="text-lg font-bold mb-4"><span>Your Clipboard</span> #<span id="clipboard-id">Loading...</span></h2>
+        <textarea
+          class="w-full bg-input dark:bg-input text-primary dark:text-primary-foreground border border-border rounded-md p-2"
+          rows="15" readonly id="clipboard-content" wrap="off">Loading...</textarea>
+        <div style="position: relative;">
+          <div id="load_process" class="bg-secondary rounded-md">
+            <div id="load_process_bar" class="bg-primary rounded-md h-6" style="width: 0%;">
+              <span id="load_process_text" class="text-primary-foreground text-center w-full block">0%</span>
+            </div>
+          </div>
+        </div>
+        <button class="w-full bg-primary text-primary-foreground hover:bg-primary/80 py-2 mt-4 rounded-md" type="button"
+          onclick="copyClipboard()">Copy</button>
+      </div>
+    </div>
+    <div class="flex justify-center p-4 bg-card dark:bg-card-foreground shadow-lg">
+      <p class="text-sm">Online Clipboard © 2025 rlongdragon</p>
+    </div>
+  </div>
+
+  <script>
+    async function copyClipboard() {
+      const textarea = document.querySelector('#clipboard-content');
+      textarea.select();
+      document.execCommand('copy');
+      alert('Copied to clipboard');
+    }
+
+    const createButton = document.querySelector('.bg-primary');
+    const readButton = document.querySelector('.bg-secondary');
+
+    function setActiveButton(activeButton) {
+      if (activeButton === 'create') {
+        createButton.classList.add('bg-black', 'text-white');
+        createButton.classList.remove('bg-primary', 'text-primary-foreground');
+        readButton.classList.remove('bg-black', 'text-white');
+        readButton.classList.add('bg-secondary', 'text-secondary-foreground');
+      } else if (activeButton === 'read') {
+        readButton.classList.add('bg-black', 'text-white');
+        readButton.classList.remove('bg-secondary', 'text-secondary-foreground');
+        createButton.classList.remove('bg-black', 'text-white');
+        createButton.classList.add('bg-primary', 'text-primary-foreground');
+      }
+    }
+
+    async function getClipboardContentWithProgress(id, startLoad, setProcess, endLoad) {
+      const upperId = id.toUpperCase();
+      try {
+        const response = await fetch(`/api/clipboard/${upperId}`);
+        const total = response.headers.get('Content-Length');
+        startLoad(total);
+        let loaded = 0;
+        const reader = response.body.getReader();
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) {
+            break;
+          }
+          loaded += value.length;
+          setProcess(total, loaded);
+        }
+        const response2 = await fetch(`/api/clipboard/${upperId}`);
+        const data = await response2.json();
+        endLoad(data.content);
+      } catch (error) {
+        console.error('Error:', error);
+        endLoad(null, error);
+      }
+    }
+
+    const submitButton = document.querySelector('button[type="submit"]');
+    const textarea = document.querySelector('textarea');
+    const clipboardDiv = document.querySelector('.flex-grow:nth-child(3)');
+    const formDiv = document.querySelector('.flex-grow:nth-child(2)');
+    const clipboardContent = document.querySelector('.flex-grow:nth-child(3) textarea');
+    const clipboardIdSpan = document.querySelector('h2 span:nth-child(2)');
+    const characterCountSpan = document.createElement('span');
+    characterCountSpan.textContent = '0 / 20000';
+    textarea.parentNode.insertBefore(characterCountSpan, textarea.nextSibling);
+    const clipboardCountSpan = document.createElement('p');
+    clipboardCountSpan.textContent = 'Total Clipboards: 0';
+    clipboardCountSpan.style.position = 'fixed';
+    clipboardCountSpan.style.bottom = '10px';
+    clipboardCountSpan.style.right = '10px';
+    clipboardCountSpan.style.fontSize = '0.8em';
+
+    document.body.appendChild(clipboardCountSpan);
+
+    async function updateClipboardCount() {
+      try {
+        const response = await fetch('/api/count');
+        const data = await response.json();
+        clipboardCountSpan.textContent = `Total Clipboards: ${data.count}`;
+      } catch (error) {
+        console.error('Error:', error);
+        clipboardCountSpan.textContent = 'Failed to load clipboard count';
+      }
+    }
+
+    function updateCharacterCount() {
+      const count = textarea.value.length;
+      characterCountSpan.textContent = `${count} / 20000`;
+
+      if (count > 20000) {
+        characterCountSpan.style.color = 'red';
+        submitButton.disabled = true;
+      } else {
+        characterCountSpan.style.color = '';
+        submitButton.disabled = false;
+      }
+    }
+
+    async function createClipboard() {
+      const content = textarea.value;
+
+      try {
+        if (content.length > 20000) {
+          alert('Content is too long');
+          return;
+        }
+
+        const response = await fetch('/api/create', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ content })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          clipboardIdSpan.textContent = data.id;
+          clipboardContent.value = content;
+          formDiv.style.display = 'none';
+          document.querySelector("#create-button").className = "bg-secondary text-secondary-foreground hover:bg-secondary/80 py-2 px-4 rounded-md mr-2"
+          clipboardDiv.style.display = 'flex';
+          document.querySelector("#read-button").className = "bg-primary text-primary-foreground hover:bg-primary/80 py-2 px-4 rounded-md"
+          window.location.href = `/${data.id}`; // Update URL to shareable link
+        } else {
+          alert(data.error || 'Failed to create clipboard');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to create clipboard');
+      }
+    }
+
+    async function readClipboard(id) {
+      const clipboardContentElement = document.getElementById('clipboard-content');
+      const clipboardIdElement = document.getElementById('clipboard-id');
+
+      const startLoad = (total) => {
+
+      };
+
+      const loadProcessBar = document.getElementById('load_process_bar');
+      const loadProcessText = document.getElementById('load_process_text');
+      const setProcess = (total, loaded) => {
+        const percent = Math.round((loaded / total) * 100);
+        loadProcessBar.style.width = `${percent}%`;
+        loadProcessText.textContent = `${percent}%`;
+      };
+
+      const endLoad = (content, error) => {
+        loadProcessText.textContent = `complete`;
+        clipboardContentElement.style.display = 'block';
+        if (content) {
+          clipboardIdElement.textContent = id;
+          clipboardContentElement.value = content;
+          formDiv.style.display = 'none';
+          document.querySelector("#create-button").className = "bg-secondary text-secondary-foreground hover:bg-secondary/80 py-2 px-4 rounded-md mr-2"
+
+          clipboardDiv.style.display = 'flex';
+          document.querySelector("#read-button").className = "bg-primary text-primary-foreground hover:bg-primary/80 py-2 px-4 rounded-md"
+
+          document.title = `Clipboard #${id}`;
+
+          setTimeout(() => {
+            document.getElementById('load_process').style.opacity = 0;
+            setTimeout(() => {
+              document.getElementById('load_process').style.display = 'none';
+            }, 500);
+          }, 1000);
+        } else {
+          alert(error || 'Failed to read clipboard');
+        }
+      };
+
+      getClipboardContentWithProgress(id, startLoad, setProcess, endLoad);
+    }
+
+    createButton.addEventListener('click', () => {
+      formDiv.style.display = 'flex';
+      clipboardDiv.style.display = 'none';
+      document.querySelector("#create-button").className = "bg-primary text-primary-foreground hover:bg-primary/80 py-2 px-4 rounded-md mr-2"
+      document.querySelector("#read-button").className = "bg-secondary text-secondary-foreground hover:bg-secondary/80 py-2 px-4 rounded-md"
+    });
+
+    readButton.addEventListener('click', () => {
+      formDiv.style.display = 'none';
+      clipboardDiv.style.display = 'flex';
+      document.querySelector("#create-button").className = "bg-secondary text-secondary-foreground hover:bg-secondary/80 py-2 px-4 rounded-md mr-2"
+      document.querySelector("#read-button").className = "bg-primary text-primary-foreground hover:bg-primary/80 py-2 px-4 rounded-md"
+    });
+
+    submitButton.addEventListener('click', async (e) => {
+      e.preventDefault();
+      createClipboard();
+    });
+
+    textarea.addEventListener('input', updateCharacterCount);
+
+    // Check if there's an ID in the URL path
+    const pathSegments = window.location.pathname.split('/');
+    const clipboardId = pathSegments[1]; // The ID is the second segment
+
+    if (clipboardId) {
+      readClipboard(clipboardId);
+      formDiv.style.display = 'none';
+      clipboardDiv.style.display = 'flex';
+      document.querySelector("#create-button").className = "bg-secondary text-secondary-foreground hover:bg-secondary/80 py-2 px-4 rounded-md mr-2"
+      document.querySelector("#read-button").className = "bg-primary text-primary-foreground hover:bg-primary/80 py-2 px-4 rounded-md"
+    } else {
+      clipboardDiv.style.display = 'none';
+      document.querySelector("#create-button").className = "bg-primary text-primary-foreground hover:bg-primary/80 py-2 px-4 rounded-md mr-2"
+      document.querySelector("#read-button").style.display = "none"
+    }
+
+    updateClipboardCount();
+  </script>
+</body>
+
+</html>
